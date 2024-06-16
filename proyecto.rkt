@@ -35,26 +35,26 @@
     (expresion (bool-expresion) bool-exp)
     (expresion (identificador) var-exp)
     (expresion (numero-exp) num-exp)    
-    (expresion ("\"" identificador (arbno identificador) "\"") cadena-exp)
+    ;;; (expresion ("\"" identificador (arbno identificador) "\"") cadena-exp)
     (expresion (var-decl) decl-exp)
 
     ;;Listas y arrays
-    (expresion ("list" "(" (separated-list expresion ",") ")") lista-exp)
-    (expresion ("cons" "(" expresion expresion ")") cons-exp)
-    (expresion ("empty") empty-list-exp)
-    (expresion ("array" "(" (separated-list expresion ",") ")") array-exp)
+    ;;; (expresion ("list" "(" (separated-list expresion ",") ")") lista-exp)
+    ;;; (expresion ("cons" "(" expresion expresion ")") cons-exp)
+    ;;; (expresion ("empty") empty-list-exp)
+    ;;; (expresion ("array" "(" (separated-list expresion ",") ")") array-exp)
 
     ;;Expresion primitivas
     ;;Primitiva numerica
     (expresion ("(" expresion primitiva expresion ")") prim-num-exp)
     ;;Primitiva booleana
-    (expresion (primitivaBooleana "(" (separated-list expresion ",") ")") prim-bool-exp)
-    ;;Primitiva listas
-    (expresion (primitivaListas "(" expresion ")") prim-list-exp)
-    ;;Primitiva array
-    (expresion (primitivaArray "(" (separated-list expresion ",") ")") prim-array-exp)
-    ;;Primitiva de cadenas
-    (expresion (primitivaCadena "(" (separated-list expresion ",") ")") prim-cad-exp)
+    ;;; (expresion (primitivaBooleana "(" (separated-list expresion ",") ")") prim-bool-exp)
+    ;;; ;;Primitiva listas
+    ;;; (expresion (primitivaListas "(" expresion ")") prim-list-exp)
+    ;;; ;;Primitiva array
+    ;;; (expresion (primitivaArray "(" (separated-list expresion ",") ")") prim-array-exp)
+    ;;; ;;Primitiva de cadenas
+    ;;; (expresion (primitivaCadena "(" (separated-list expresion ",") ")") prim-cad-exp)
 
 
     ;;Condicionales
@@ -73,16 +73,16 @@
     (expresion ("set" identificador "=" expresion) set-exp)
 
     ;;Funciones
-    (expresion ("func" "(" (separated-list identificador ",") ")" expresion) func-exp)
-    (expresion ("call" expresion "(" (separated-list expresion ",") ")") call-exp)
+    ;;; (expresion ("func" "(" (separated-list identificador ",") ")" expresion) func-exp)
+    ;;; (expresion ("call" expresion "(" (separated-list expresion ",") ")") call-exp)
 
     ;;Instanciación y uso de estructuras
-    (expresion ("new" identificador "(" (separated-list expresion ",") ")") new-struct-exp)
-    (expresion ("get" expresion "." identificador) get-struct-exp)
-    (expresion ("set-struct" expresion "." identificador "=" expresion) set-struct-exp)
+    ;;; (expresion ("new" identificador "(" (separated-list expresion ",") ")") new-struct-exp)
+    ;;; (expresion ("get" expresion "." identificador) get-struct-exp)
+    ;;; (expresion ("set-struct" expresion "." identificador "=" expresion) set-struct-exp)
 
     ;;Reconocimiento de patrones
-    (expresion ("match" expresion "{" (arbno regular-exp "=>" expresion) "}") match-exp)
+    ;;; (expresion ("match" expresion "{" (arbno regular-exp "=>" expresion) "}") match-exp)
 
     ;;Numero-exp
     (numero-exp (digitoDecimal) decimal-num)
@@ -109,26 +109,26 @@
     (primitiva ("==") igual-prim)
 
     ;;primitiva booleana
-    (primitivaBooleana ("and") and-prim)
-    (primitivaBooleana ("or") or-prim)
-    (primitivaBooleana ("xor") xor-prim)
-    (primitivaBooleana ("not") not-prim)
+    ;;; (primitivaBooleana ("and") and-prim)
+    ;;; (primitivaBooleana ("or") or-prim)
+    ;;; (primitivaBooleana ("xor") xor-prim)
+    ;;; (primitivaBooleana ("not") not-prim)
 
     ;;Primitiva listas
-    (primitivaListas ("first") first-primList)
-    (primitivaListas ("rest") rest-primList)
-    (primitivaListas ("empty?") empty-primList)
+    ;;; (primitivaListas ("first") first-primList)
+    ;;; (primitivaListas ("rest") rest-primList)
+    ;;; (primitivaListas ("empty?") empty-primList)
 
     ;;Primitiva arrays
-    (primitivaArray ("length") length-primArr)
-    (primitivaArray ("index") index-primArr)
-    (primitivaArray ("slice") slice-primArr)
-    (primitivaArray ("setlist") setlist-primArr)
+    ;;; (primitivaArray ("length") length-primArr)
+    ;;; (primitivaArray ("index") index-primArr)
+    ;;; (primitivaArray ("slice") slice-primArr)
+    ;;; (primitivaArray ("setlist") setlist-primArr)
 
     ;;Primitiva cadenas
-    (primitivaCadena ("concat") concat-primCad)
-    (primitivaCadena ("string-length") length-primCad)
-    (primitivaCadena ("elementAt") index-primCad)
+    ;;; (primitivaCadena ("concat") concat-primCad)
+    ;;; (primitivaCadena ("string-length") length-primCad)
+    ;;; (primitivaCadena ("elementAt") index-primCad)
     
     ;;Variables
     (var-decl ("var" (arbno identificador "=" expresion) "in" expresion) lvar-exp)
@@ -138,13 +138,13 @@
     (struct-decl ("struct" identificador "{" (arbno identificador) "}") struct-exp)
 
     ;;Expresiones regulares
-    (regular-exp (identificador "::" identificador) list-match-exp)
-    (regular-exp ("numero" "(" identificador ")") num-match-exp)
-    (regular-exp ("cadena" "(" identificador ")") cad-match-exp)
-    (regular-exp ("boolean" "(" identificador ")") bool-match-exp)
-    (regular-exp ("array" "(" (separated-list identificador ",") ")") array-match-exp)
-    (regular-exp ("empty") empty-match-exp)
-    (regular-exp ("default") default-match-exp)
+    ;;; (regular-exp (identificador "::" identificador) list-match-exp)
+    ;;; (regular-exp ("numero" "(" identificador ")") num-match-exp)
+    ;;; (regular-exp ("cadena" "(" identificador ")") cad-match-exp)
+    ;;; (regular-exp ("boolean" "(" identificador ")") bool-match-exp)
+    ;;; (regular-exp ("array" "(" (separated-list identificador ",") ")") array-match-exp)
+    ;;; (regular-exp ("empty") empty-match-exp)
+    ;;; (regular-exp ("default") default-match-exp)
     )
   )
 
@@ -209,10 +209,189 @@
   (lambda (exp env)
     (cases expresion exp
       ; Expresiones de la gramática
+      (bool-exp (bool-expresion) (eval-bool-expresion bool-expresion env))
+      (var-exp (identificador) (apply-env env identificador))
+      (num-exp (numero-exp) (eval-num-expresion numero-exp env))
+
+      ;Condicionales
+      (if-exp (test-exp true-exp false-exp)
+              (if (eval-expression test-exp env)
+                  (eval-expression true-exp env)
+                  (eval-expression false-exp env)))
+
+      ;Secuenciación y asignación
+      (set-exp (id rhs-exp)
+               (begin
+                 (setref!
+                  (apply-env-ref env id)
+                  (eval-expression rhs-exp env))
+                1))
+      (begin-exp (exp exps) 
+                 (let loop ((acc (eval-expression exp env))
+                             (exps exps))
+                    (if (null? exps) 
+                        acc
+                        (loop (eval-expression (car exps) 
+                                               env)
+                              (cdr exps)))))
+
+      ;Variables
+      (decl-exp (var-decl) (eval-var-decl var-decl env))
+
+      ;Iteradores
+      (for-exp (id from until by body)
+        (eval-for-exp id from until by body env))
+      (while-exp (exp body)
+        (eval-while-exp exp body env))
+
+      ;Switch
+      (switch-exp (exp cases casesExp default)
+        (eval-switch-exp exp cases casesExp default env))
+
+      ;Primitivas
+      (prim-num-exp (exp1 primitiva exp2)
+        (apply-primitive primitiva (list (eval-expression exp1 env) (eval-expression exp2 env))))
+
     )
   )
 )
 
+; funciones auxiliares para evaluar expresiones
+;Evaluar expresiones booleanas
+(define eval-bool-expresion
+  (lambda (exp env)
+    (cases bool-expresion exp
+      (true-exp () #t)
+      (false-exp () #f)
+    )
+  )
+)
+
+;Evaluar expresiones numéricas
+(define eval-num-expresion
+  (lambda (exp env)
+    (cases numero-exp exp
+      (decimal-num (digitoDecimal) digitoDecimal)
+      (octal-num (digitoOctal) digitoOctal)
+      (bin-num (digitoBinario) digitoBinario)
+      (hex-num (digitoHexadecimal) digitoHexadecimal)
+      (float-num (flotante) flotante)
+    )
+  )
+)
+
+;Evaluar declaraciones de variables
+(define eval-var-decl
+  (lambda (exp env)
+    (cases var-decl exp
+      ; ligadura modificable
+      (lvar-exp (ids rands body) 
+                (let ((args (eval-rands rands env)))
+                 (eval-expression body
+                                  (extend-env ids args env))))
+      ; ligadura no modificable
+      (let-exp (ids rands body) 
+                (let ((args (eval-rands rands env)))
+                 (eval-expression body
+                                  (extend-env ids args env))))
+    )
+  )
+)
+
+;Primitivas
+; funcion para aplicar primitivas numericas
+(define apply-primitive
+  (lambda (prim args)
+    (cases primitiva prim
+      (sum-prim () (+ (car args) (cadr args)))
+      (minus-prim () (- (car args) (cadr args)))
+      (mult-prim () (* (car args) (cadr args)))
+      (mod-prim () (modulo (car args) (cadr args)))
+      (elevar-prim () (expt (car args) (cadr args)))
+      (menor-prim () (< (car args) (cadr args)))
+      (mayor-prim () (> (car args) (cadr args)))
+      (menorigual-prim () (<= (car args) (cadr args)))
+      (mayorigual-prim () (>= (car args) (cadr args)))
+      (diferente-prim () (not (= (car args) (cadr args))))
+      (igual-prim () (= (car args) (cadr args)))
+    )
+  )
+)
+
+;Iteradores
+;funcion para evaluar un for
+(define eval-for-exp
+  (lambda (id from until by body env)
+    (letrec
+      (
+        (valueFrom (eval-expression from env))
+        (valueUntil (eval-expression until env))
+        (valueBy (eval-expression by env))
+        (iterate
+          (lambda (i n inc)
+            (cond
+              [(< i n)
+                (begin
+                  (eval-expression body (extend-env (list id) (list i) env))
+                  (iterate (+ i inc) n inc)
+              )]
+              [else #t]
+            )
+          )
+        )
+      )
+      (iterate valueFrom valueUntil valueBy)
+    )
+  )
+)
+
+;funcion para evaluar un while
+(define eval-while-exp
+  (lambda (exp body env)
+    (letrec
+      (
+        (iterate
+          (lambda (value)
+            (cond
+              [(eval-expression exp env)
+                (begin
+                  (eval-expression body env)
+                  (iterate value)
+                )]
+              [else #t]
+            )
+          )
+        )
+      )
+      (iterate exp)
+    )
+  )
+)
+
+;Switch
+;funcion para evaluar un switch
+(define eval-switch-exp
+  (lambda (exp cases casesExp default env)
+    (letrec
+      (
+        (value (eval-expression exp env))
+        (lst (map (lambda (x) (eval-expression x env)) cases))
+        (lst2 (map (lambda (x) (eval-expression x env)) casesExp))
+        (defaultValue (eval-expression default env))
+        (iterate
+          (lambda (lst lst2 defaultValue)
+            (cond
+              [(null? lst) defaultValue]
+              [(eqv? value (car lst)) (car lst2)]
+              [else (iterate (cdr lst) (cdr lst2) defaultValue)]
+            )
+          )
+        )
+      )
+      (iterate lst lst2 defaultValue)
+    )
+  )
+)
 
 ; funciones auxiliares para aplicar eval-expression a cada elemento de una 
 ; lista de operandos (expresiones)
@@ -370,3 +549,4 @@
 ;Interpretador
 ;(interpretador)
 
+(provide (all-defined-out))
