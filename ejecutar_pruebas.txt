@@ -1,3 +1,5 @@
 sh test.sh 1 iteradores
 sh test.sh 2 condicionales
 sh test.sh 3 switch
+sh test.sh 4 primitivaBooleana
+sh test.sh 5 primitivaNumerica

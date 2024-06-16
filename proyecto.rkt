@@ -48,7 +48,7 @@
     ;;Primitiva numerica
     (expresion ("(" expresion primitiva expresion ")") prim-num-exp)
     ;;Primitiva booleana
-    ;;; (expresion (primitivaBooleana "(" (separated-list expresion ",") ")") prim-bool-exp)
+    (expresion (primitivaBooleana "(" (separated-list expresion ",") ")") prim-bool-exp)
     ;;; ;;Primitiva listas
     ;;; (expresion (primitivaListas "(" expresion ")") prim-list-exp)
     ;;; ;;Primitiva array
@@ -109,10 +109,10 @@
     (primitiva ("==") igual-prim)
 
     ;;primitiva booleana
-    ;;; (primitivaBooleana ("and") and-prim)
-    ;;; (primitivaBooleana ("or") or-prim)
-    ;;; (primitivaBooleana ("xor") xor-prim)
-    ;;; (primitivaBooleana ("not") not-prim)
+    (primitivaBooleana ("and") and-prim)
+    (primitivaBooleana ("or") or-prim)
+    (primitivaBooleana ("xor") xor-prim)
+    (primitivaBooleana ("not") not-prim)
 
     ;;Primitiva listas
     ;;; (primitivaListas ("first") first-primList)
@@ -251,7 +251,8 @@
       ;Primitivas
       (prim-num-exp (exp1 primitiva exp2)
         (apply-primitive primitiva (list (eval-expression exp1 env) (eval-expression exp2 env))))
-
+      (prim-bool-exp (primitivaBooleana args) 
+        (apply-primitive-bool primitivaBooleana (eval-rands args env)))
     )
   )
 )
@@ -303,17 +304,181 @@
 (define apply-primitive
   (lambda (prim args)
     (cases primitiva prim
-      (sum-prim () (+ (car args) (cadr args)))
-      (minus-prim () (- (car args) (cadr args)))
-      (mult-prim () (* (car args) (cadr args)))
-      (mod-prim () (modulo (car args) (cadr args)))
-      (elevar-prim () (expt (car args) (cadr args)))
-      (menor-prim () (< (car args) (cadr args)))
-      (mayor-prim () (> (car args) (cadr args)))
-      (menorigual-prim () (<= (car args) (cadr args)))
-      (mayorigual-prim () (>= (car args) (cadr args)))
-      (diferente-prim () (not (= (car args) (cadr args))))
-      (igual-prim () (= (car args) (cadr args)))
+      (sum-prim () (check-base-apply-operation args +))
+      (minus-prim () (check-base-apply-operation args -))
+      (mult-prim () (check-base-apply-operation args *))
+      (mod-prim () (check-base-apply-operation args modulo))
+      (elevar-prim () (check-base-apply-operation args expt))
+      (menor-prim () (check-base-apply-operation args <))
+      (mayor-prim () (check-base-apply-operation args >))
+      (menorigual-prim () (check-base-apply-operation args <=))
+      (mayorigual-prim () (check-base-apply-operation args >=))
+      (diferente-prim () (check-base-apply-operation args (lambda (x y) (not (= x y)))))
+      (igual-prim () (check-base-apply-operation args =))
+    )
+  )
+)
+
+;funciones auxiliares para primitivas numericas
+;Aplicar operaciones a números con bases
+(define check-base-apply-operation
+  (lambda (args operation)
+    (let
+      (
+        (num1 (car args))
+        (num2 (cadr args))
+      )
+      (if (and (number? num1) (number? num2))
+        (operation num1 num2)
+        (if (and (string? num1) (string? num2))
+          (letrec
+            (
+              (lst1 (get-value num1))
+              (lst2 (get-value num2))
+              (base1 (cadr lst1))
+              (base2 (cadr lst2))
+            )
+            (if (= base1 base2)
+              (let
+                (
+                  (result (operation 
+                            (base-x-to-decimal (car lst1) base1) 
+                            (base-x-to-decimal (car lst2) base2)))
+                )
+                (string-append
+                  (if (< result 0) "-" "")
+                  (get-base-string base1)
+                  (decimal-to-base-x (abs result) base1)
+                )
+              )
+              (eopl:error "Error las bases de los números no son iguales")
+            )
+          )
+          (eopl:error "Error no se pueden operar los valores")
+        )
+      )
+    )
+  )
+)
+
+;Obtener una lista con el valor y la base de un número
+(define get-value
+  (lambda (num)
+    (if (string=? (substring num 0 1) "-")
+      (cond
+        [(string=? (substring num 1 2) "b") 
+          (list (string-append "-" (substring num 2 (string-length num))) 2)]
+        [(string=? (substring num 1 3) "0x") 
+          (list (string-append "-" (substring num 3 (string-length num))) 8)]
+        [(string=? (substring num 1 3) "hx") 
+          (list (string-append "-" (substring num 3 (string-length num))) 16)]
+      )
+      (cond
+        [(string=? (substring num 0 1) "b") 
+          (list (substring num 1 (string-length num)) 2)]
+        [(string=? (substring num 0 2) "0x") 
+          (list (substring num 2 (string-length num)) 8)]
+        [(string=? (substring num 0 2) "hx") 
+          (list (substring num 2 (string-length num)) 16)]
+      )
+    )
+  )
+)
+
+;Obtener la cadena base de un número
+(define get-base-string
+  (lambda (n)
+    (cond
+      [(= n 2) "b"]
+      [(= n 8) "0x"]
+      [(= n 16) "hx"]
+      [else ""]
+    )
+  )
+)
+
+(define digits "0123456789ABCDEF")
+
+;funcion para obtener una cadena de un numero
+(define get-string
+  (lambda (n x)
+    (cond
+      [(< n x) (string (string-ref digits n))]
+      [else (string-append
+              (get-string (quotient n x) x)
+              (string (string-ref digits (remainder n x))))]
+    )
+  )
+)
+
+;funcion para obtener un numero de una cadena
+(define get-number
+  (lambda (s x)
+    (cond
+      [(= (string-length s) 0) 0]
+      [else (+ (* x (get-number (substring s 0 (- (string-length s) 1)) x))
+               (string-index digits (string-ref s (- (string-length s) 1))))]
+    )
+  )
+)
+
+;funcion para obtener el indice de un caracter en una cadena
+(define string-index
+  (lambda (str char [acc 0])
+    (cond
+      [(= (string-length str) 0) (eopl:error "No se encuentra el caracter")]
+      [(char=? (string-ref str 0) char) acc]
+      [else (string-index (substring str 1 (string-length str)) char (+ acc 1))]
+    )
+  )
+)
+
+;funcion para convertir un numero decimal a base x
+(define decimal-to-base-x
+  (lambda (n x)
+    (let
+      (
+        (sign (if (< n 0) "-" "")) ; si el numero es negativo entonces se pone el signo
+        (n (abs n))
+      )
+      (string-append sign (get-string n x))
+    )
+  )
+)
+
+;funcion para convertir un numero en base x a decimal
+(define base-x-to-decimal
+  (lambda (s x)
+    (let
+      (
+        (sign (if (string=? (substring s 0 1) "-") -1 1)) ; si el numero es negativo entonces se pone el signo
+        (s (substring s (if (string=? (substring s 0 1) "-") 1 0) (string-length s)))
+      )
+      (* sign (get-number s x))
+    )
+  )
+)
+
+; funcion para aplicar primitivas booleanas
+(define apply-primitive-bool
+  (lambda (prim args)
+    (cases primitivaBooleana prim
+      (and-prim () (operation args (lambda (acc x) (and acc x)) #t))
+      (or-prim () (operation args (lambda (acc x) (or acc x)) #f))
+      (xor-prim () (operation args (lambda (acc x) (xor acc x)) #f))
+      (not-prim () (not (car args)))
+    )
+  )
+)
+
+;funciones auxiliares para primitivas booleanos
+(define xor
+  (lambda (exp1 exp2)
+    (cond
+      [(and exp1 exp2) #F]
+      [exp1 #T]
+      [exp2 #T]
+      [else #F]
     )
   )
 )
