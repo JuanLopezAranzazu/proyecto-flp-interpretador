@@ -35,13 +35,13 @@
     (expresion (bool-expresion) bool-exp)
     (expresion (identificador) var-exp)
     (expresion (numero-exp) num-exp)    
-    ;;; (expresion ("\"" identificador (arbno identificador) "\"") cadena-exp)
+    (expresion ("\"" identificador (arbno identificador) "\"") cadena-exp)
     (expresion (var-decl) decl-exp)
 
     ;;Listas y arrays
-    ;;; (expresion ("list" "(" (separated-list expresion ",") ")") lista-exp)
-    ;;; (expresion ("cons" "(" expresion expresion ")") cons-exp)
-    ;;; (expresion ("empty") empty-list-exp)
+    (expresion ("list" "(" (separated-list expresion ",") ")") lista-exp)
+    (expresion ("cons" "(" expresion expresion ")") cons-exp)
+    (expresion ("empty") empty-list-exp)
     ;;; (expresion ("array" "(" (separated-list expresion ",") ")") array-exp)
 
     ;;Expresion primitivas
@@ -49,12 +49,12 @@
     (expresion ("(" expresion primitiva expresion ")") prim-num-exp)
     ;;Primitiva booleana
     (expresion (primitivaBooleana "(" (separated-list expresion ",") ")") prim-bool-exp)
-    ;;; ;;Primitiva listas
-    ;;; (expresion (primitivaListas "(" expresion ")") prim-list-exp)
+    ;;Primitiva listas
+    (expresion (primitivaListas "(" expresion ")") prim-list-exp)
     ;;; ;;Primitiva array
     ;;; (expresion (primitivaArray "(" (separated-list expresion ",") ")") prim-array-exp)
-    ;;; ;;Primitiva de cadenas
-    ;;; (expresion (primitivaCadena "(" (separated-list expresion ",") ")") prim-cad-exp)
+    ;;Primitiva de cadenas
+    (expresion (primitivaCadena "(" (separated-list expresion ",") ")") prim-cad-exp)
 
 
     ;;Condicionales
@@ -115,9 +115,9 @@
     (primitivaBooleana ("not") not-prim)
 
     ;;Primitiva listas
-    ;;; (primitivaListas ("first") first-primList)
-    ;;; (primitivaListas ("rest") rest-primList)
-    ;;; (primitivaListas ("empty?") empty-primList)
+    (primitivaListas ("first") first-primList)
+    (primitivaListas ("rest") rest-primList)
+    (primitivaListas ("empty?") empty-primList)
 
     ;;Primitiva arrays
     ;;; (primitivaArray ("length") length-primArr)
@@ -126,9 +126,9 @@
     ;;; (primitivaArray ("setlist") setlist-primArr)
 
     ;;Primitiva cadenas
-    ;;; (primitivaCadena ("concat") concat-primCad)
-    ;;; (primitivaCadena ("string-length") length-primCad)
-    ;;; (primitivaCadena ("elementAt") index-primCad)
+    (primitivaCadena ("concat") concat-primCad)
+    (primitivaCadena ("string-length") length-primCad)
+    (primitivaCadena ("elementAt") index-primCad)
     
     ;;Variables
     (var-decl ("var" (arbno identificador "=" expresion) "in" expresion) lvar-exp)
@@ -212,6 +212,14 @@
       (bool-exp (bool-expresion) (eval-bool-expresion bool-expresion env))
       (var-exp (identificador) (apply-env env identificador))
       (num-exp (numero-exp) (eval-num-expresion numero-exp env))
+      (cadena-exp (id args) (create-cadena-exp id args))
+
+      ;Listas
+      (lista-exp (args) 
+        (map (lambda (x) (eval-expression x env)) args))
+      (cons-exp (exp1 exp2) 
+        (cons (eval-expression exp1 env) (eval-expression exp2 env)))
+      (empty-list-exp () '())
 
       ;Condicionales
       (if-exp (test-exp true-exp false-exp)
@@ -253,6 +261,8 @@
         (apply-primitive primitiva (list (eval-expression exp1 env) (eval-expression exp2 env))))
       (prim-bool-exp (primitivaBooleana args) 
         (apply-primitive-bool primitivaBooleana (eval-rands args env)))
+      (prim-cad-exp (primitivaCadena args) (apply-primitive-cad primitivaCadena (eval-rands args env)))
+      (prim-list-exp (primitivaListas arg) (apply-primitive-list primitivaListas (eval-rand arg env)))
     )
   )
 )
@@ -479,6 +489,56 @@
       [exp1 #T]
       [exp2 #T]
       [else #F]
+    )
+  )
+)
+
+
+;funciones auxiliares para cadenas
+;funcion para unir una lista de cadenas dado un delimitador
+(define join-string
+  (lambda (lst delimiter)
+    (cond
+      [(null? lst) ""]
+      [(null? (cdr lst)) (car lst)]
+      [else (string-append (car lst) delimiter (join-string (cdr lst) delimiter))]
+    )
+  )
+)
+
+;funcion para crear una cadena
+; la funcion recibe un identificador y una lista de identificadores
+; y retorna una cadena con la concatenacion de los identificadores
+(define create-cadena-exp
+  (lambda (id args)
+    (let 
+      (
+        (str-id (symbol->string id))
+        (str-args (map symbol->string args))
+      )
+      (join-string (cons str-id str-args) " ")
+    )
+  )
+)
+
+;Aplicar primitivas de cadenas
+(define apply-primitive-cad
+  (lambda (prim args)
+    (cases primitivaCadena prim
+      (concat-primCad () (join-string args ""))
+      (length-primCad () (string-length (car args)))
+      (index-primCad () (string-ref (car args) (car (cdr args)))) ; obtener el caracter dado un indice
+    )
+  )
+)
+
+;Aplicar primitivas de listas
+(define apply-primitive-list
+  (lambda (prim args)
+    (cases primitivaListas prim
+      (first-primList () (car args))
+      (rest-primList () (cdr args))
+      (empty-primList () (null? args))
     )
   )
 )

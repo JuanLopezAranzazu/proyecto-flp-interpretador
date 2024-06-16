@@ -73,3 +73,23 @@
 )
 
 (check-equal? (eval-program exp4) expected-exp4)
+
+;Test 5:
+(define exp5
+  (scan&parse
+    "
+    let
+    x = hxFF
+    y = hx10
+    z = -hx2
+    a = -hxD
+    in
+      (a + (z - (x + y)))
+    "
+  )
+)
+(define expected-exp5
+  "-hx11E"
+)
+
+(check-equal? (eval-program exp5) expected-exp5)
