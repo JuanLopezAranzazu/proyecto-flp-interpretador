@@ -42,7 +42,7 @@
     (expresion ("list" "(" (separated-list expresion ",") ")") lista-exp)
     (expresion ("cons" "(" expresion expresion ")") cons-exp)
     (expresion ("empty") empty-list-exp)
-    ;;; (expresion ("array" "(" (separated-list expresion ",") ")") array-exp)
+    (expresion ("array" "(" (separated-list expresion ",") ")") array-exp)
 
     ;;Expresion primitivas
     ;;Primitiva numerica
@@ -52,7 +52,7 @@
     ;;Primitiva listas
     (expresion (primitivaListas "(" expresion ")") prim-list-exp)
     ;;; ;;Primitiva array
-    ;;; (expresion (primitivaArray "(" (separated-list expresion ",") ")") prim-array-exp)
+    (expresion (primitivaArray "(" (separated-list expresion ",") ")") prim-array-exp)
     ;;Primitiva de cadenas
     (expresion (primitivaCadena "(" (separated-list expresion ",") ")") prim-cad-exp)
 
@@ -120,10 +120,10 @@
     (primitivaListas ("empty?") empty-primList)
 
     ;;Primitiva arrays
-    ;;; (primitivaArray ("length") length-primArr)
-    ;;; (primitivaArray ("index") index-primArr)
-    ;;; (primitivaArray ("slice") slice-primArr)
-    ;;; (primitivaArray ("setlist") setlist-primArr)
+    (primitivaArray ("length") length-primArr)
+    (primitivaArray ("index") index-primArr)
+    (primitivaArray ("slice") slice-primArr)
+    (primitivaArray ("setlist") setlist-primArr)
 
     ;;Primitiva cadenas
     (primitivaCadena ("concat") concat-primCad)
@@ -220,6 +220,9 @@
       (cons-exp (exp1 exp2) 
         (cons (eval-expression exp1 env) (eval-expression exp2 env)))
       (empty-list-exp () '())
+      ;Array
+      (array-exp (args) 
+       (list->vector (map (lambda (x) (eval-expression x env)) args)))
 
       ;Condicionales
       (if-exp (test-exp true-exp false-exp)
@@ -263,6 +266,7 @@
         (apply-primitive-bool primitivaBooleana (eval-rands args env)))
       (prim-cad-exp (primitivaCadena args) (apply-primitive-cad primitivaCadena (eval-rands args env)))
       (prim-list-exp (primitivaListas arg) (apply-primitive-list primitivaListas (eval-rand arg env)))
+      (prim-array-exp (primitivaArray args) (apply-primitive-array primitivaArray (eval-rands args env)))
     )
   )
 )
@@ -539,6 +543,60 @@
       (first-primList () (car args))
       (rest-primList () (cdr args))
       (empty-primList () (null? args))
+    )
+  )
+)
+
+;Aplicar primitivas de arrays
+(define apply-primitive-array
+  (lambda (prim args)
+    (cases primitivaArray prim
+      (length-primArr () (vector-length (car args)))
+      (index-primArr ()
+        (let
+          (
+            (index (car (cdr args)))
+            (arr (car args))
+          )
+          (vector-ref arr index)
+        )
+      )
+      (slice-primArr ()
+        (letrec
+          (
+            (start (car (cdr args))) ; indice de inicio
+            (end (car (cdr (cdr args)))) ; indice de fin
+            (arr (car args)) ; array
+            (len (+ 1 (- end start))) ; longitud del nuevo array
+            (new-vector (make-vector len))
+            (iterate ; funcion para iterar sobre el array
+              (lambda ([i 0])
+                (cond
+                  [(= i len) new-vector]
+                  [else
+                    (vector-set! new-vector i (vector-ref arr (+ start i)))
+                    (iterate (+ i 1))
+                  ]
+                )
+              )
+            )
+          )
+          (iterate)
+        )
+      )
+      (setlist-primArr ()
+        (let
+          (
+            (index (car (cdr args))) ; indice a modificar
+            (value (car (cdr (cdr args)))) ; valor a modificar
+            (arr (car args)) ; array
+          )
+          (begin
+            (vector-set! arr index value) ; modificar el valor de un indice en el array
+            arr
+          )
+        )
+      )
     )
   )
 )
