@@ -6,3 +6,4 @@ sh test.sh 5 primitivaNumerica
 sh test.sh 6 primitivaCadena
 sh test.sh 7 primitivaLista
 sh test.sh 8 primitivaArray
+sh test.sh 9 funciones

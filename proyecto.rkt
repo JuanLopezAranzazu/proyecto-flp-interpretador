@@ -73,8 +73,8 @@
     (expresion ("set" identificador "=" expresion) set-exp)
 
     ;;Funciones
-    ;;; (expresion ("func" "(" (separated-list identificador ",") ")" expresion) func-exp)
-    ;;; (expresion ("call" expresion "(" (separated-list expresion ",") ")") call-exp)
+    (expresion ("func" "(" (separated-list identificador ",") ")" expresion) func-exp)
+    (expresion ("call" expresion "(" (separated-list expresion ",") ")") call-exp)
 
     ;;Instanciación y uso de estructuras
     ;;; (expresion ("new" identificador "(" (separated-list expresion ",") ")") new-struct-exp)
@@ -133,6 +133,9 @@
     ;;Variables
     (var-decl ("var" (arbno identificador "=" expresion) "in" expresion) lvar-exp)
     (var-decl ("let" (arbno identificador "=" expresion) "in" expresion) let-exp)
+    ;Letrec
+    (expresion ("letrec" (arbno identificador "(" (separated-list identificador ",") ")" "=" expresion)  "in" expresion) 
+                letrec-exp)
     
     ;;Estructuras de datos
     (struct-decl ("struct" identificador "{" (arbno identificador) "}") struct-exp)
@@ -188,7 +191,7 @@
 ;Lista de estructuras
 (define the-struct-env '())
 
-;Elaborar structuras declaradas
+;Elaborar estructuras declaradas
 (define elaborate-struct-decls!
   (lambda (structs)
     (set! the-struct-env structs)))
@@ -260,13 +263,40 @@
         (eval-switch-exp exp cases casesExp default env))
 
       ;Primitivas
+      ;Primitivas numericas
       (prim-num-exp (exp1 primitiva exp2)
         (apply-primitive primitiva (list (eval-expression exp1 env) (eval-expression exp2 env))))
+      ;Primitivas booleanas
       (prim-bool-exp (primitivaBooleana args) 
         (apply-primitive-bool primitivaBooleana (eval-rands args env)))
+      ;Primitivas de cadenas
       (prim-cad-exp (primitivaCadena args) (apply-primitive-cad primitivaCadena (eval-rands args env)))
+      ;Primitivas de listas
       (prim-list-exp (primitivaListas arg) (apply-primitive-list primitivaListas (eval-rand arg env)))
+      ;Primitivas de arrays
       (prim-array-exp (primitivaArray args) (apply-primitive-array primitivaArray (eval-rands args env)))
+
+      ;Funciones
+      (func-exp (ids body) 
+        (closure ids body env))
+      (call-exp (exp rands) 
+        (let 
+          (
+            (proc (eval-expression exp env))
+            (args (eval-rands rands env))
+          )
+          (if (procval? proc) 
+              (apply-procedure proc args)
+              (eopl:error 'eval-expression
+                                 "Attempt to apply non-procedure ~s" proc)
+          )
+        )
+      )
+
+      ;Letrec
+      (letrec-exp (proc-names idss bodies letrec-body)
+                  (eval-expression letrec-body
+                                   (extend-env-recursively proc-names idss bodies env)))
     )
   )
 )
