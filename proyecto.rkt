@@ -440,16 +440,16 @@
   (lambda (args operation)
     (let
       (
-        (num1 (car args))
-        (num2 (cadr args))
+        (num1 (car args)) ; primer elemento
+        (num2 (cadr args)) ; segundo elemento
       )
       (if (and (number? num1) (number? num2))
         (operation num1 num2)
         (if (and (string? num1) (string? num2))
           (letrec
             (
-              (lst1 (get-value num1))
-              (lst2 (get-value num2))
+              (lst1 (get-value num1)) ; lista con el valor y la base del primer número
+              (lst2 (get-value num2)) ; lista con el valor y la base del segundo número
               (base1 (cadr lst1))
               (base2 (cadr lst2))
             )
@@ -479,21 +479,21 @@
 ;Obtener una lista con el valor y la base de un número
 (define get-value
   (lambda (num)
-    (if (string=? (substring num 0 1) "-")
+    (if (string=? (substring num 0 1) "-") ; si el número es negativo
       (cond
-        [(string=? (substring num 1 2) "b") 
+        [(string=? (substring num 1 2) "b") ; si el número es binario
           (list (string-append "-" (substring num 2 (string-length num))) 2)]
-        [(string=? (substring num 1 3) "0x") 
+        [(string=? (substring num 1 3) "0x") ; si el número es octal
           (list (string-append "-" (substring num 3 (string-length num))) 8)]
-        [(string=? (substring num 1 3) "hx") 
+        [(string=? (substring num 1 3) "hx") ; si el número es hexadecimal
           (list (string-append "-" (substring num 3 (string-length num))) 16)]
       )
       (cond
-        [(string=? (substring num 0 1) "b") 
+        [(string=? (substring num 0 1) "b") ; si el número es binario
           (list (substring num 1 (string-length num)) 2)]
-        [(string=? (substring num 0 2) "0x") 
+        [(string=? (substring num 0 2) "0x") ; si el número es octal
           (list (substring num 2 (string-length num)) 8)]
-        [(string=? (substring num 0 2) "hx") 
+        [(string=? (substring num 0 2) "hx") ; si el número es hexadecimal
           (list (substring num 2 (string-length num)) 16)]
       )
     )
@@ -521,7 +521,7 @@
       [(< n x) (string (string-ref digits n))]
       [else (string-append
               (get-string (quotient n x) x)
-              (string (string-ref digits (remainder n x))))]
+              (string (string-ref digits (modulo n x))))]
     )
   )
 )
@@ -708,10 +708,10 @@
   (lambda (id from until by body env)
     (letrec
       (
-        (valueFrom (eval-expression from env))
-        (valueUntil (eval-expression until env))
-        (valueBy (eval-expression by env))
-        (iterate
+        (valueFrom (eval-expression from env)) ; valor inicial
+        (valueUntil (eval-expression until env)) ; valor final
+        (valueBy (eval-expression by env)) ; incremento
+        (iterate ; funcion para iterar sobre el for
           (lambda (i n inc)
             (cond
               [(< i n)
@@ -734,7 +734,7 @@
   (lambda (exp body env)
     (letrec
       (
-        (iterate
+        (iterate ; funcion para iterar sobre el while
           (lambda (value)
             (cond
               [(eval-expression exp env)
@@ -758,10 +758,10 @@
   (lambda (exp cases casesExp default env)
     (letrec
       (
-        (value (eval-expression exp env))
-        (lst (map (lambda (x) (eval-expression x env)) cases))
-        (lst2 (map (lambda (x) (eval-expression x env)) casesExp))
-        (defaultValue (eval-expression default env))
+        (value (eval-expression exp env)) ; expresion a evaluar
+        (lst (map (lambda (x) (eval-expression x env)) cases)) ; valores de los casos
+        (lst2 (map (lambda (x) (eval-expression x env)) casesExp)) ; expresiones de los casos
+        (defaultValue (eval-expression default env)) ; valor por defecto
         (iterate
           (lambda (lst lst2 defaultValue)
             (cond

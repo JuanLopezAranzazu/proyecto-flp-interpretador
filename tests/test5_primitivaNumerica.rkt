@@ -93,3 +93,39 @@
 )
 
 (check-equal? (eval-program exp5) expected-exp5)
+
+;Test 6:
+(define exp6
+  (scan&parse
+    "
+    let
+    x = 0x400
+    y = 0x6
+    in
+      (x mod y)
+    "
+  )
+)
+(define expected-exp6
+  "0x4"
+)
+
+(check-equal? (eval-program exp6) expected-exp6)
+
+;Test 7:
+(define exp7
+  (scan&parse
+    "
+    let
+    x = b101101
+    y = b11
+    in
+      (x pow y)
+    "
+  )
+)
+(define expected-exp7
+  "b10110001111110101"
+)
+
+(check-equal? (eval-program exp7) expected-exp7)
