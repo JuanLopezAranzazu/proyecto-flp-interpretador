@@ -82,7 +82,7 @@
     ;;; (expresion ("set-struct" expresion "." identificador "=" expresion) set-struct-exp)
 
     ;;Reconocimiento de patrones
-    ;;; (expresion ("match" expresion "{" (arbno regular-exp "=>" expresion) "}") match-exp)
+    (expresion ("match" expresion "{" (arbno regular-exp "=>" expresion) "}") match-exp)
 
     ;;Numero-exp
     (numero-exp (digitoDecimal) decimal-num)
@@ -141,13 +141,13 @@
     (struct-decl ("struct" identificador "{" (arbno identificador) "}") struct-exp)
 
     ;;Expresiones regulares
-    ;;; (regular-exp (identificador "::" identificador) list-match-exp)
-    ;;; (regular-exp ("numero" "(" identificador ")") num-match-exp)
-    ;;; (regular-exp ("cadena" "(" identificador ")") cad-match-exp)
-    ;;; (regular-exp ("boolean" "(" identificador ")") bool-match-exp)
-    ;;; (regular-exp ("array" "(" (separated-list identificador ",") ")") array-match-exp)
-    ;;; (regular-exp ("empty") empty-match-exp)
-    ;;; (regular-exp ("default") default-match-exp)
+    (regular-exp (identificador "::" identificador) list-match-exp)
+    (regular-exp ("numero" "(" identificador ")") num-match-exp)
+    (regular-exp ("cadena" "(" identificador ")") cad-match-exp)
+    (regular-exp ("boolean" "(" identificador ")") bool-match-exp)
+    (regular-exp ("array" "(" (separated-list identificador ",") ")") array-match-exp)
+    (regular-exp ("empty") empty-match-exp)
+    (regular-exp ("default") default-match-exp)
     )
   )
 
@@ -297,6 +297,35 @@
       (letrec-exp (proc-names idss bodies letrec-body)
                   (eval-expression letrec-body
                                    (extend-env-recursively proc-names idss bodies env)))
+
+      ;Reconocimiento de patrones
+      (match-exp (exp regularExp cases)
+        (letrec
+          (
+            (value (eval-expression exp env)) ; evaluar la expresión
+            (iterate ; función para iterar sobre los casos
+              (lambda (lst lst2)
+                (cond
+                  [(null? lst) (eopl:error "Error no se encontró un caso que coincida")]
+                  [else
+                    (letrec
+                      (
+                        (list-val (eval-regular-exp (car lst) value env))
+                        (validate (car list-val))
+                        (new-env (car (cdr list-val)))
+                      )
+                      (if validate
+                        (eval-expression (car lst2) new-env)
+                        (iterate (cdr lst) (cdr lst2))
+                      )
+                    )]
+                )
+              )
+            )
+          )
+          (iterate regularExp cases)
+        )
+      )
     )
   )
 )
@@ -339,6 +368,48 @@
                 (let ((args (eval-rands rands env)))
                  (eval-expression body
                                   (extend-env ids args env))))
+    )
+  )
+)
+
+;Evaluar expresiones regulares
+(define eval-regular-exp
+  (lambda (exp value env)
+    (cases regular-exp exp
+      (empty-match-exp () (list (and (list? value) (null? value)) env))
+      (list-match-exp (id1 id2)
+        (let
+          (
+            (new-env (if (and (list? value) (not (null? value))) 
+                          (extend-env (list id1 id2) (list (car value) (cdr value)) env) env))
+          )
+        (list (and (list? value) (not (null? value))) new-env)
+        )
+      )
+      (array-match-exp (ids)
+        (let
+          (
+            (new-env (if (vector? value) 
+                          (extend-env ids (get-vector-env ids value) env) env))
+          )
+        (list (vector? value) new-env)
+        )
+      )
+      (num-match-exp (id) (list (number? value) env))
+      (cad-match-exp (id) (list (string? value) env))
+      (bool-match-exp (id) (list (boolean? value) env))
+      (default-match-exp () (list #t env))
+    )
+  )
+)
+
+; funcion para crear una lista con los valores de un vector
+(define get-vector-env
+  (lambda (ids vec)
+    (cond
+      [(null? (cdr ids)) (cons vec '())]
+      [else (cons (vector-ref vec 0) 
+              (get-vector-env (cdr ids) (list->vector (cdr (vector->list vec)))))]
     )
   )
 )
