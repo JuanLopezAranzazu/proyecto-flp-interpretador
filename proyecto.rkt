@@ -208,8 +208,6 @@
   )
 )
 
-; Logica para las estructuras
-
 ;Ambiente inicial
 (define init-env
   (lambda ()
@@ -581,26 +579,40 @@
   )
 )
 
+; lista con las bases de los números
+(define elements '(("b" 2) ("0x" 8) ("hx" 16)))
+
 ;Obtener una lista con el valor y la base de un número
 (define get-value
   (lambda (num)
-    (if (string=? (substring num 0 1) "-") ; si el número es negativo
-      (cond
-        [(string=? (substring num 1 2) "b") ; si el número es binario
-          (list (string-append "-" (substring num 2 (string-length num))) 2)]
-        [(string=? (substring num 1 3) "0x") ; si el número es octal
-          (list (string-append "-" (substring num 3 (string-length num))) 8)]
-        [(string=? (substring num 1 3) "hx") ; si el número es hexadecimal
-          (list (string-append "-" (substring num 3 (string-length num))) 16)]
+    (letrec
+      (
+        (sign (if (string=? (substring num 0 1) "-") 1 0)) ; si el número es negativo
+        (iterate
+          (lambda (lst)
+            (cond
+              [(null? lst) (eopl:error "No se encuentra la base del número")]
+              [(contains-string (car (car lst)) num) 
+                (list (string-append (if (= sign 1) "-" "") 
+                      (substring num (+ sign (string-length (car (car lst)))) 
+                      (string-length num))) (car (cdr (car lst))))]
+              [else (iterate (cdr lst))]
+            )
+          )
+        )
       )
-      (cond
-        [(string=? (substring num 0 1) "b") ; si el número es binario
-          (list (substring num 1 (string-length num)) 2)]
-        [(string=? (substring num 0 2) "0x") ; si el número es octal
-          (list (substring num 2 (string-length num)) 8)]
-        [(string=? (substring num 0 2) "hx") ; si el número es hexadecimal
-          (list (substring num 2 (string-length num)) 16)]
-      )
+      (iterate elements)
+    )
+  )
+)
+
+; funcion para verificar si una cadena contiene otra cadena
+(define contains-string
+  (lambda (sub str)
+    (cond
+      [(> (string-length sub) (string-length str)) #f]
+      [(string=? sub (substring str 0 (string-length sub))) #t]
+      [else (contains-string sub (substring str 1))]
     )
   )
 )
@@ -617,6 +629,7 @@
   )
 )
 
+; cadena con los digitos
 (define digits "0123456789ABCDEF")
 
 ;funcion para obtener una cadena de un numero
@@ -834,25 +847,25 @@
   )
 )
 
-;funcion para evaluar un while
+; funcion para evaluar un while
 (define eval-while-exp
   (lambda (exp body env)
     (letrec
       (
         (iterate ; funcion para iterar sobre el while
-          (lambda (value)
+          (lambda ()
             (cond
               [(eval-expression exp env)
                 (begin
                   (eval-expression body env)
-                  (iterate value)
+                  (iterate)
                 )]
               [else #t]
             )
           )
         )
       )
-      (iterate exp)
+      (iterate)
     )
   )
 )

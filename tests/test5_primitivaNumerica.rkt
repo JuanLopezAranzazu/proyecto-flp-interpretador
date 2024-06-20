@@ -129,3 +129,21 @@
 )
 
 (check-equal? (eval-program exp7) expected-exp7)
+
+;Test 8:
+(define exp8
+  (scan&parse
+    "
+    let
+    x = b1010
+    y = -b1100
+    in
+      (x - y)
+    "
+  )
+)
+(define expected-exp8
+  "b10110"
+)
+
+(check-equal? (eval-program exp8) expected-exp8)

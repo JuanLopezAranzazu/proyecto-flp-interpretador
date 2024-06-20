@@ -64,3 +64,32 @@
 )
 
 (check-equal? (eval-program exp3) expected-exp3)
+
+;Test 4: 
+(define exp4 
+  (scan&parse
+    "
+    struct persona { nombre edad }
+    struct perro { nombre edad color }
+    let 
+    p = new persona(\"juan\" , 20)
+    t = new perro(\"lucas\" , 2 , \"verde\")
+    in 
+      begin 
+        set-struct p.nombre = \"pepe\";
+        set-struct t.color = \"rojo\";
+        let
+          x = get t.color
+          y = get p.nombre
+        in
+          concat(y,x)
+      end
+    "
+  )
+)
+(define expected-exp4
+  "peperojo"
+)
+
+(check-equal? (eval-program exp4) expected-exp4)
+
