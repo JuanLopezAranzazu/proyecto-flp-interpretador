@@ -77,9 +77,9 @@
     (expresion ("call" expresion "(" (separated-list expresion ",") ")") call-exp)
 
     ;;Instanciación y uso de estructuras
-    ;;; (expresion ("new" identificador "(" (separated-list expresion ",") ")") new-struct-exp)
-    ;;; (expresion ("get" expresion "." identificador) get-struct-exp)
-    ;;; (expresion ("set-struct" expresion "." identificador "=" expresion) set-struct-exp)
+    (expresion ("new" identificador "(" (separated-list expresion ",") ")") new-struct-exp)
+    (expresion ("get" expresion "." identificador) get-struct-exp)
+    (expresion ("set-struct" expresion "." identificador "=" expresion) set-struct-exp)
 
     ;;Reconocimiento de patrones
     (expresion ("match" expresion "{" (arbno regular-exp "=>" expresion) "}") match-exp)
@@ -194,7 +194,19 @@
 ;Elaborar estructuras declaradas
 (define elaborate-struct-decls!
   (lambda (structs)
-    (set! the-struct-env structs)))
+    (let ((structs (map eval-struct-decl structs)))
+    (set! the-struct-env structs))))
+
+;Evaluar declaraciones de estructuras
+(define eval-struct-decl
+  (lambda (struct)
+    (cases struct-decl struct
+      (struct-exp (id fields) 
+          (list id fields)
+      )
+    )
+  )
+)
 
 ; Logica para las estructuras
 
@@ -326,6 +338,99 @@
           (iterate regularExp cases)
         )
       )
+
+      ;Estructuras
+      ; Crear una estructura
+      (new-struct-exp (id args)
+        (let
+          (
+            (struct (apply-env-struct id the-struct-env)) ; buscar la estructura en the-struct-env
+            (args (eval-rands args env)) ; evaluar los argumentos
+          )
+          (let
+            (
+              (fields (car (cdr struct))) ; campos de la estructura
+            )
+            (list->vector (map (lambda (field arg) (list field arg)) fields args)); crear una lista con los campos y los valores
+          )
+        )
+      )
+      ; Obtener el campo de una estructura
+      (get-struct-exp (exp id)
+        (letrec
+          (
+            (struct (eval-expression exp env)) ; evaluar la expresión
+          )
+          (search-field id (vector->list struct)) ; buscar el campo en la estructura
+        )
+      )
+      ; Modificar el campo de una estructura
+      (set-struct-exp (exp1 id exp2)
+        (begin
+          (let*
+            (
+              (struct (eval-expression exp1 env))
+              (value (eval-expression exp2 env))
+            )
+            (set-field id value struct)
+            1
+          )
+        )
+      )
+    )
+  )
+)
+
+; funcion para buscar un identificador en the-struct-env
+(define apply-env-struct
+  (lambda (id the-struct-env)
+    (cond
+      [(null? the-struct-env) (eopl:error "No se encuentra la estructura")]
+      [(eq? (car (car the-struct-env)) id) (car the-struct-env)]
+      [else (apply-env-struct id (cdr the-struct-env))]
+    )
+  )
+)
+
+; buscar el campo de una estructura de lista de pares
+(define search-field
+  (lambda (id fields)
+    (cond
+      [(null? fields) (eopl:error "No se encuentra el campo")]
+      [(eq? (car (car fields)) id) (car (cdr (car fields)))]
+      [else (search-field id (cdr fields))]
+    )
+  )
+)
+
+; modificar la lista de pares de una estructura
+(define set-field
+  (lambda (id value struct)
+    (let
+      (
+        (index (find-index id (vector->list struct))) ; encontrar el índice del par con el id especificado
+      )
+      (vector-set! struct index (list id value)) ; establecer el par en el índice especificado al nuevo par
+    )
+  )
+)
+
+; funcion para encontrar el indice de un par con un id especificado
+(define find-index
+  (lambda (id fields)
+    (letrec
+      (
+        (iterate
+          (lambda (fields [i 0])
+            (cond
+              [(null? fields) (eopl:error "No se encuentra el campo")]
+              [(eq? id (car (car fields))) i]
+              [else (iterate (cdr fields) (+ i 1))]
+            )
+          )
+        )
+      )
+      (iterate fields)
     )
   )
 )

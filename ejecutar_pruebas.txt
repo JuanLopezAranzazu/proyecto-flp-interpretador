@@ -8,3 +8,4 @@ sh test.sh 7 primitivaLista
 sh test.sh 8 primitivaArray
 sh test.sh 9 funciones
 sh test.sh 10 patrones
+sh test.sh 11 estructuras
